@@ -61,12 +61,33 @@ resource "aws_key_pair" "my_key" {
   public_key = file("~/.ssh/aws-ec2-key.pub")  # Ruta a tu clave pública local
 }
 
+resource "aws_iam_role" "ec2_role" {
+  name = "ec2-ecr-access-role"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = { Service = "ec2.amazonaws.com" }
+    }]
+  })
+}
+
+resource "aws_iam_instance_profile" "ec2_profile" {
+  name = "ec2-ecr-instance-profile"
+  role = aws_iam_role.ec2_role.name
+}
+
+
 # EC2 t2.micro (Free Tier)
 resource "aws_instance" "my_instance" {
   ami           = var.ec2_ami_id
   instance_type = "t2.micro"
   vpc_security_group_ids = [aws_security_group.ec2_sg.id]
   subnet_id              = aws_subnet.public.id
+  iam_instance_profile = aws_iam_instance_profile.ec2_profile.name
+
 
   key_name = aws_key_pair.my_key.key_name  
 

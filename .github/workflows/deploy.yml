@@ -49,14 +49,21 @@ jobs:
 
           # Conectar a la instancia y ejecutar comandos
           ssh -i key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} "
+            # Configurar permisos de Docker
+            sudo usermod -aG docker ec2-user
+            newgrp docker  # Recargar grupos del usuario
+            
             # Autenticarse en ECR desde la instancia
             aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | sudo docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }}
 
-            # Detener y eliminar contenedores anteriores
-            sudo docker stop \$(sudo docker ps -q) || true  # Ignora errores si no hay contenedores
-            sudo docker rm \$(sudo docker ps -a -q) || true
+            # Detener y eliminar contenedores (manejo seguro)
+            CONTAINERS=\$(sudo docker ps -q)
+            if [ ! -z \"\$CONTAINERS\" ]; then
+              sudo docker stop \$CONTAINERS
+              sudo docker rm \$CONTAINERS
+            fi
 
-            # Descargar y ejecutar la nueva imagen
+            # Descargar y ejecutar la imagen
             sudo docker pull ${{ secrets.ECR_REPOSITORY_URL }}:latest
             sudo docker run -d -p 3000:3000 ${{ secrets.ECR_REPOSITORY_URL }}:latest
           "
