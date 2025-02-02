@@ -20,7 +20,7 @@ jobs:
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
 
       # Paso 3: Login en Amazon ECR
       - name: Login to Amazon ECR
@@ -50,7 +50,7 @@ jobs:
           # Conectar a la instancia y ejecutar comandos
           ssh -i key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} "
             # Autenticarse en ECR desde la instancia
-            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }}
+            aws ecr get-login-password --region ${{ secrets.AWS_DEFAULT_REGION }} | sudo docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }}
 
             # Detener y eliminar contenedores anteriores
             sudo docker stop \$(sudo docker ps -q) || true  # Ignora errores si no hay contenedores
