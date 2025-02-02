@@ -1,0 +1,62 @@
+name: Build, Push, and Deploy
+
+on:
+  push:
+    branches:
+      - main # Se activa al hacer push a la rama "main"
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest # Ejecuta el pipeline en un runner de GitHub
+
+    steps:
+      # Paso 1: Obtener el código del repositorio
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Paso 2: Configurar credenciales de AWS
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      # Paso 3: Login en Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      # Paso 4: Construir la imagen Docker
+      - name: Build Docker image
+        run: |
+          docker build -t ${{ secrets.ECR_REPOSITORY_URL }}:latest .
+
+      # Paso 5: Subir la imagen al repositorio ECR
+      - name: Push Docker image
+        run: |
+          docker tag ${{ secrets.ECR_REPOSITORY_URL }}:latest ${{ secrets.ECR_REPOSITORY_URL }}:latest
+          docker push ${{ secrets.ECR_REPOSITORY_URL }}:latest
+
+      # Paso 6: Desplegar en EC2 via SSH
+      - name: Deploy to EC2
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }} # Clave privada en base64
+        run: |
+          # Decodificar la clave SSH y configurar permisos
+          echo "$SSH_PRIVATE_KEY" | base64 --decode > key.pem
+          chmod 400 key.pem
+
+          # Conectar a la instancia y ejecutar comandos
+          ssh -i key.pem -o StrictHostKeyChecking=no ec2-user@${{ secrets.EC2_PUBLIC_IP }} "
+            # Autenticarse en ECR desde la instancia
+            aws ecr get-login-password --region ${{ secrets.AWS_REGION }} | sudo docker login --username AWS --password-stdin ${{ secrets.ECR_REPOSITORY_URL }}
+
+            # Detener y eliminar contenedores anteriores
+            sudo docker stop \$(sudo docker ps -q) || true  # Ignora errores si no hay contenedores
+            sudo docker rm \$(sudo docker ps -a -q) || true
+
+            # Descargar y ejecutar la nueva imagen
+            sudo docker pull ${{ secrets.ECR_REPOSITORY_URL }}:latest
+            sudo docker run -d -p 3000:3000 ${{ secrets.ECR_REPOSITORY_URL }}:latest
+          "
