@@ -44,7 +44,7 @@ jobs:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }} # Clave privada en base64
         run: |
           # Decodificar la clave SSH y configurar permisos
-          echo "$SSH_PRIVATE_KEY" | base64 --decode > key.pem
+          echo "$SSH_PRIVATE_KEY" > key.pem
           chmod 400 key.pem
 
           # Conectar a la instancia y ejecutar comandos
