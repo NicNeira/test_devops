@@ -27,7 +27,6 @@ jspm_packages/
 .env
 
 # Express
-public/
 views/
 
 # React
