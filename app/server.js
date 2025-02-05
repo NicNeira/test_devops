@@ -2,6 +2,7 @@ const express = require('express');
 const axios = require('axios');
 const cors = require('cors');
 const app = express();
+
 const PORT = process.env.PORT || 3000;
 
 app.use(cors());
@@ -19,6 +20,11 @@ app.get('/api/insurance', async (req, res) => {
   }
 });
 
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en el puerto ${PORT}`);
-});
+const server =
+  process.env.NODE_ENV !== 'test'
+    ? app.listen(PORT, () => {
+        console.log(`Servidor corriendo en el puerto ${PORT}`);
+      })
+    : null;
+
+module.exports = { app, server };
