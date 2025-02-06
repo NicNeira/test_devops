@@ -165,3 +165,20 @@ ssh -i ~/.ssh/aws-ec2-key ec2-user@<ec2_instance_public_ip>
 *   El script `user_data` instala y configura Docker en la instancia EC2. Asegúrate de que esto cumple con tus necesidades y considera la posibilidad de utilizar una imagen de Docker personalizada si es necesario.
 
 ---
+
+
+## Flujo Git
+El flujo git utilizado es una versión modificada de GitFlow. Consta de las siguientes ramas `main`, `develop`, `feature/*`, `fix/*`, `add/*`.
+
+- `main`: Contiene el código listo para producción.
+
+- `develop`: La rama de integración principal para todas las nuevas funcionalidades.
+
+- `feature/*`: Se ramifica desde main, es donde desarrollan las nuevas features.
+
+- `fix/*`: Se ramifica desde develop, es donde se solucionan problemas de codigo u otros.
+
+Los cambios de `develop` se fusionan directamente en `main` cuando están listos para el despliegue.
+
+En lugar de que todas las funcionalidades se fusionen directamente en `main`, primero se fusionan los `features` los `fix` y `otros` en `develop`. Luego, una fusión controlada de `develop` a `main` activa el pipeline para el despliegue.
+
