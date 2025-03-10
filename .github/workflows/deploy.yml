@@ -7,6 +7,7 @@ on:
 
 jobs:
   build-and-deploy:
+    if: false # Desactivar el pipeline por defecto
     runs-on: ubuntu-latest # Ejecuta el pipeline en un runner de GitHub
 
     steps:
