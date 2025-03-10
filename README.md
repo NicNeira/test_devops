@@ -1,8 +1,9 @@
 # test_devops
 
+
 El código dentro de `/app/server.js` crea un servidor web sencillo con Node.js y Express que expone un endpoint `/api/insurance`. Este endpoint realiza una petición a la API externa `https://dn8mlk7hdujby.cloudfront.net/interview/insurance/58` para obtener información sobre un seguro y la devuelve al cliente en formato JSON.
 
-- Endpoint del backend funcionando en el EC2: `http://3.239.248.172:3000/api/insurance`
+- Endpoint del backend funcionando en el EC2: `http://3.239.248.172:3000/api/insurance` *** Actualmente dado de baja ***
 - La respuesta json que se obtiene es la siguiente:
 ```JSON
 {
